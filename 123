@@ -1,0 +1,50 @@
+using System;
+using System.DirectoryServices;
+using System.Windows.Forms;
+
+namespace ActiveDirectorySearch
+{
+    public partial class MainForm : Form
+    {
+        public MainForm()
+        {
+            InitializeComponent();
+        }
+
+        private void searchButton_Click(object sender, EventArgs e)
+        {
+            string domain = "your-domain.com";
+            string username = "username";
+            string password = "password";
+            string filter = "(&(objectCategory=user)(objectClass=user))";
+
+            SearchResultCollection users = SearchUsers(domain, username, password, filter);
+
+            resultListBox.Items.Clear();
+
+            foreach (SearchResult user in users)
+            {
+                string name = user.Properties["cn"][0].ToString();
+                string email = user.Properties["mail"][0].ToString();
+                string username = user.Properties["samaccountname"][0].ToString();
+
+                string userInfo = "Name: " + name + "\nEmail: " + email + "\nUsername: " + username + "\n";
+
+                resultListBox.Items.Add(userInfo);
+            }
+        }
+
+        private SearchResultCollection SearchUsers(string domain, string username, string password, string filter)
+        {
+            string path = "LDAP://" + domain;
+
+            DirectoryEntry entry = new DirectoryEntry(path, username, password);
+            DirectorySearcher searcher = new DirectorySearcher(entry);
+            searcher.Filter = filter;
+
+            SearchResultCollection results = searcher.FindAll();
+
+            return results;
+        }
+    }
+}
